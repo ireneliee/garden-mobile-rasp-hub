@@ -1,13 +1,12 @@
 import time
 from bluetooth import ble
 
-from hub.databaseAccess import DatabaseAccess
+from databaseAccess import DatabaseAccess
 import util
 from bleuartlib import BleUartDevice
-from constant import TEMPERATURE, TEMPERATURE_, MOISTURE, MOISTURE_, SOILPH, SOILPH_, SALINITY, SALINITY_
+from constant import microbit_address, TEMPERATURE, TEMPERATURE_, MOISTURE, MOISTURE_, SOILPH, SOILPH_, SALINITY, SALINITY_
 
-# CHANGE ACCORDING TO YOUR OWN MICROBIT ADDRESSES
-microbit_address = set([])
+
 
 connectedBlueArtDevices = []
 
@@ -27,16 +26,28 @@ def bleUartReceiveCallback(data):
 
 def parseReceivedData(data):
 	data_array = data.split(":")
-	data_name = data_array[0]
+	data_name = removeNullChars(data_array[0])
 	data_value = float("{:.3f}".format(float(data_array[1])))
 
-	return data_name, data_value
+	mapping = {
+		TEMPERATURE_: TEMPERATURE,
+		SOILPH_ : SOILPH,
+		SALINITY_: SALINITY,
+		MOISTURE_: MOISTURE
+	}
+	
+	print(data_name)
+	print(data_value)
+
+	return mapping[data_name], data_value
 	
 def disconnectAllDevices():
 	for device in connectedBlueArtDevices:
 		device.disconnect()
 
-
+def removeNullChars(input_string):
+    return input_string.replace('\x00', '')
+    
 try:
 
 	service = ble.DiscoveryService()

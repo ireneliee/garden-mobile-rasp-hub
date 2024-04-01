@@ -1,3 +1,6 @@
+# CHANGE ACCORDING TO YOUR OWN MICROBIT ADDRESSES
+microbit_address = set(["F8:DB:3B:B6:F2:07"])
+
 DATABASE_NAME = "gardenBuddyData.db"
 # long form
 TEMPERATURE = "temperature"
