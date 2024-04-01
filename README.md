@@ -1,7 +1,10 @@
 # garden-mobile-rasp-hub
-## Set-up guide for temperature-humidity sensor
-- Set up the bme280 sensor (lecture 6, last slide)
-- Enable I2C interface in Raspbery Pi Configuration using `sudo raspi-config`. Then choose Interface Options > I2C
-- Install adafruit-circuitpython-bme280 using `sudo python3 -m pip install adafruit-circuitpython-bme280`
-- Install sqlite3 using `sudo apt install sqlite3`
-- Run the python program
+## Set-up guide for raspberry pi
+- You may find the code for raspberry pi in the hub folder
+- Copy the all the code in the folder into your raspberry pi
+- In `constant.py`, add your microbit MAC address into `microbit_address` variable
+- For now, the driver is `readSensorValues.py`. You may run the program using `sudo python3 readSensorValues.py`
+
+## Set-up guide for microbit
+- Follow lab04 recordings for bluetooth set up
+- You may find the code for microbit in the node folder
