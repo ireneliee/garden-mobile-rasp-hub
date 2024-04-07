@@ -1,78 +1,58 @@
 import time
-from bluetooth import ble
+import requests
+import board
+from gpiozero import get_serial
+from datetime import datetime
+from adafruit_bme280 import basic as adafruit_bme280
 
 from databaseAccess import DatabaseAccess
-import util
-from bleuartlib import BleUartDevice
-from constant import microbit_address, TEMPERATURE, TEMPERATURE_, MOISTURE, MOISTURE_, SOILPH, SOILPH_, SALINITY, SALINITY_
+from constant import  API, TEMPERATURE, TEMPERATURE_, MOISTURE, MOISTURE_, SOILPH, SOILPH_, SALINITY, SALINITY_
 
-
-
-connectedBlueArtDevices = []
-
+# initialization database
 database = DatabaseAccess()
 
-def addBleUartDevice(address):
-	bleUartDevice = BleUartDevice(address)
-	bleUartDevice.connect()
-	bleUartDevice.enable_uart_receive(bleUartReceiveCallback)
-	
-	connectedBlueArtDevices.append(bleUartDevice)
+# initialization temperature sensor
+i2c = board.I2C()  # uses board.SCL and board.SDA
+bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
 
-def bleUartReceiveCallback(data):
-	print('Received data = {}'.format(data))
-	tableName, sensorValue = parseReceivedData(data)
-	database.storeData(tableName, sensorValue)
+def sendData(dataType, sensorValue):
 
-def parseReceivedData(data):
-	data_array = data.split(":")
-	data_name = removeNullChars(data_array[0])
-	data_value = float("{:.3f}".format(float(data_array[1])))
+	url = API.format(api_mapping[dataType])
 
-	mapping = {
-		TEMPERATURE_: TEMPERATURE,
-		SOILPH_ : SOILPH,
-		SALINITY_: SALINITY,
-		MOISTURE_: MOISTURE
+	api_mapping = {
+		TEMPERATURE: "submitTemperatureData",
+		MOISTURE: "submitMoistureData",
+		SALINITY: "submitSalinityData",
+		SOILPH: "submitPhData"
 	}
-	
-	print(data_name)
-	print(data_value)
 
-	return mapping[data_name], data_value
-	
-def disconnectAllDevices():
-	for device in connectedBlueArtDevices:
-		device.disconnect()
+	print('Current time is: ', str(datetime.now().time()))
+	data = {
+		"identifier": get_serial(),
+		"timestamp": datetime.now().time(),
+		"value": sensorValue
+	}
 
-def removeNullChars(input_string):
-    return input_string.replace('\x00', '')
-    
+	response = requests.post(url, data = data)
+
+	if response.status_code == 200:
+		print("Data sending to backend is successful!")
+	else:
+		print("POST request failed with status code: ", response.status_code)
+
+def readTemperatureSensor():
+	temperature = bme280.temperature
+	database.storeData(TEMPERATURE, temperature)
+	sendData(TEMPERATURE, temperature)
+
 try:
+	while True:
+		readTemperatureSensor()
+		time.sleep(60)
 
-	service = ble.DiscoveryService()
-	devices = service.discover(10)
 
-	print('********** Initiating device discovery......')
-
-	for address,name in devices.items():
-		if address in microbit_address:
-			print('Found BBC micro:bit: {}'.format(address))
-			addBleUartDevice(address)
-			print('Added the microbit...')
-
-	if len(connectedBlueArtDevices) > 0:
-		while True:
-			time.sleep(0.1)
 
 except KeyboardInterrupt:
 	
 	print('********** END')
 	
-except:
-
-	print('********** UNKNOWN ERROR')
-
-finally:
-
-	disconnectAllDevices()
