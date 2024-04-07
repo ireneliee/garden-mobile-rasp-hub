@@ -1,5 +1,6 @@
-# CHANGE ACCORDING TO YOUR OWN MICROBIT ADDRESSES
-microbit_address = set(["F8:DB:3B:B6:F2:07"])
+# backend api
+# change the api to your own ip address
+API = "http://127.20.10.12:5000/data/{}"
 
 DATABASE_NAME = "gardenBuddyData.db"
 # long form

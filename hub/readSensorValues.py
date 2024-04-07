@@ -1,78 +1,33 @@
 import time
-from bluetooth import ble
+import board
+from adafruit_bme280 import basic as adafruit_bme280
+
 
 from databaseAccess import DatabaseAccess
-import util
-from bleuartlib import BleUartDevice
-from constant import microbit_address, TEMPERATURE, TEMPERATURE_, MOISTURE, MOISTURE_, SOILPH, SOILPH_, SALINITY, SALINITY_
+from constant import  TEMPERATURE
+from util import sendData
 
+def readTemperatureSensor():
+	temperature = bme280.temperature
+	database.storeData(TEMPERATURE, temperature)
+	sendData(TEMPERATURE, temperature)
 
-
-connectedBlueArtDevices = []
-
+# initialization database
 database = DatabaseAccess()
 
-def addBleUartDevice(address):
-	bleUartDevice = BleUartDevice(address)
-	bleUartDevice.connect()
-	bleUartDevice.enable_uart_receive(bleUartReceiveCallback)
-	
-	connectedBlueArtDevices.append(bleUartDevice)
+# initialization temperature sensor
+i2c = board.I2C()  # uses board.SCL and board.SDA
+bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
 
-def bleUartReceiveCallback(data):
-	print('Received data = {}'.format(data))
-	tableName, sensorValue = parseReceivedData(data)
-	database.storeData(tableName, sensorValue)
-
-def parseReceivedData(data):
-	data_array = data.split(":")
-	data_name = removeNullChars(data_array[0])
-	data_value = float("{:.3f}".format(float(data_array[1])))
-
-	mapping = {
-		TEMPERATURE_: TEMPERATURE,
-		SOILPH_ : SOILPH,
-		SALINITY_: SALINITY,
-		MOISTURE_: MOISTURE
-	}
-	
-	print(data_name)
-	print(data_value)
-
-	return mapping[data_name], data_value
-	
-def disconnectAllDevices():
-	for device in connectedBlueArtDevices:
-		device.disconnect()
-
-def removeNullChars(input_string):
-    return input_string.replace('\x00', '')
-    
 try:
-
-	service = ble.DiscoveryService()
-	devices = service.discover(10)
-
-	print('********** Initiating device discovery......')
-
-	for address,name in devices.items():
-		if address in microbit_address:
-			print('Found BBC micro:bit: {}'.format(address))
-			addBleUartDevice(address)
-			print('Added the microbit...')
-
-	if len(connectedBlueArtDevices) > 0:
-		while True:
-			time.sleep(0.1)
+	while True:
+		try:
+			readTemperatureSensor()
+		except Exception as e:
+			print("An error occurred: ", e)
+		finally:
+			time.sleep(60)
 
 except KeyboardInterrupt:
 	
 	print('********** END')
-	
-except:
-
-	print('********** UNKNOWN ERROR')
-
-finally:
-
-	disconnectAllDevices()
