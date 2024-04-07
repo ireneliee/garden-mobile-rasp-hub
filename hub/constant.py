@@ -1,5 +1,6 @@
 # backend api
-API = "http://127.0.0.1:5000/data/{}"
+# change the api to your own ip address
+API = "http://127.20.10.12:5000/data/{}"
 
 DATABASE_NAME = "gardenBuddyData.db"
 # long form
