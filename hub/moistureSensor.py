@@ -85,8 +85,10 @@ def readMoistureSensor():
                 found_microbit = True
 
                 break
-
-
+            
+            else:
+                print('No microbit found')
+                break
 
         if found_microbit:
 
