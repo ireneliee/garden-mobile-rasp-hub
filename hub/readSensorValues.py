@@ -6,6 +6,7 @@ from adafruit_bme280 import basic as adafruit_bme280
 from databaseAccess import DatabaseAccess
 from constant import  TEMPERATURE
 from util import sendData
+from moistureSensor import readMoistureSensor
 
 def readTemperatureSensor():
 	temperature = bme280.temperature
@@ -20,13 +21,14 @@ i2c = board.I2C()  # uses board.SCL and board.SDA
 bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
 
 try:
-	while True:
-		try:
-			readTemperatureSensor()
-		except Exception as e:
-			print("An error occurred: ", e)
-		finally:
-			time.sleep(60)
+    while True:
+        try:
+            readTemperatureSensor()
+            readMoistureSensor()
+        except Exception as e:
+            print("An error occurred: ", e)
+        finally:
+            time.sleep(60)
 
 except KeyboardInterrupt:
 	
