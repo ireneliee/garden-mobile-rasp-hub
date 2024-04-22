@@ -1,6 +1,6 @@
 import requests
 
-from constant import  API, TEMPERATURE,  MOISTURE,  SOILPH, SALINITY
+from constant import  API, TEMPERATURE,  MOISTURE,  SOILPH, SALINITY, BRIGHTNESS, HEIGHT
 from datetime import datetime
 
 def getSerialNumber():
@@ -17,7 +17,9 @@ def sendData(dataType, sensorValue):
 		TEMPERATURE: "submitTemperatureData",
 		MOISTURE: "submitMoistureData",
 		SALINITY: "submitSalinityData",
-		SOILPH: "submitPhData"
+		SOILPH: "submitPhData",
+		BRIGHTNESS: "submitBrightnessData",
+        HEIGHT: "submitHeightData"
 	}
 
 	url = API.format(api_mapping[dataType])

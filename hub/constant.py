@@ -8,6 +8,8 @@ TEMPERATURE = "temperature"
 MOISTURE = "moisture"
 SALINITY = "salinity"
 SOILPH = "soilPh"
+BRIGHTNESS = "brightness"
+HEIGHT = "height"
 
 # short form
 TEMPERATURE_ = "temp"
