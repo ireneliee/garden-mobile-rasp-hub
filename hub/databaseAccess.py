@@ -1,10 +1,10 @@
 import sqlite3
-from constant import TEMPERATURE, MOISTURE, SOILPH, SALINITY, DATABASE_NAME
+from constant import TEMPERATURE, MOISTURE, SOILPH, SALINITY, HEIGHT, BRIGHTNESS, DATABASE_NAME
 
 class DatabaseAccess:
     
     def __init__(self):
-        self.tableNames = [TEMPERATURE, MOISTURE, SOILPH, SALINITY]
+        self.tableNames = [TEMPERATURE, MOISTURE, SOILPH, SALINITY, HEIGHT, BRIGHTNESS]
         self.initializeTableIfNotExist()
 
     def initializeTableIfNotExist(self):
