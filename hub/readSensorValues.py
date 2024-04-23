@@ -9,20 +9,13 @@ import _thread as thread
 from databaseAccess import DatabaseAccess
 from constant import  TEMPERATURE, BRIGHTNESS, SALINITY, SOILPH
 from util import sendData
+from moistureSensor import readMoistureSensor
 
 def readTemperatureSensor():
-	while True:
-		try:
-			temperature = bme280.temperature
-			database.storeData(TEMPERATURE, temperature)
-			sendData(TEMPERATURE, temperature)
-			print('Temperature is ', str(temperature))
-		except Exception as e:
-			print("An error occurred: ", e)
-		finally:
-			time.sleep(60)
+	temperature = bme280.temperature
+	database.storeData(TEMPERATURE, temperature)
+	sendData(TEMPERATURE, temperature)
 	
-
 def readBrightnessSensor():
 	while True:
 		try:
