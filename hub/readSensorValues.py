@@ -7,7 +7,7 @@ import _thread as thread
 
 
 from databaseAccess import DatabaseAccess
-from constant import  TEMPERATURE, BRIGHTNESS, SALINITY
+from constant import  TEMPERATURE, BRIGHTNESS, SALINITY, SOILPH
 from util import sendData
 
 def readTemperatureSensor():
@@ -16,6 +16,7 @@ def readTemperatureSensor():
 			temperature = bme280.temperature
 			database.storeData(TEMPERATURE, temperature)
 			sendData(TEMPERATURE, temperature)
+			print('Temperature is ', str(temperature))
 		except Exception as e:
 			print("An error occurred: ", e)
 		finally:
@@ -28,25 +29,39 @@ def readBrightnessSensor():
 			brightness = photocell.value
 			database.storeData(BRIGHTNESS, brightness)
 			sendData(BRIGHTNESS, brightness)
+			print('Brightness is ', str(brightness))
 		except Exception as e:
 			print("An error occurred: ", e)
 		finally:
-			time.sleep(60)
+			time.sleep(10)
 
 def readSalinitySensor():
 	while True:
 		try:
-			salinity = None # read here
+			salinity = salinityMeter.value
 			database.storeData(SALINITY, salinity)
 			sendData(SALINITY, salinity)
+			print('Salinity is ', str(salinity))
 		except Exception as e:
 			print("An error occurred: ", e)
 		finally:
-			time.sleep(60)
+			time.sleep(5)
+
+def readPhSensor():
+	while True:
+		try:
+			ph = phMeter.value * (5.0 / 1024.0 / 6) * 3.5
+			database.storeData(SOILPH, ph)
+			sendData(SOILPH, ph)
+			print('Soil pH is ', str(ph))
+		except Exception as e:
+			print("An error occurred: ", e)
+		finally:
+			time.sleep(2)
 	
 
 def setup():
-	global database, bme280, photocell
+	global database, bme280, photocell, salinityMeter, phMeter
 	# initialization database
 	database = DatabaseAccess()
 
@@ -56,14 +71,21 @@ def setup():
 	
 	# initialize light sensor
 	photocell = MCP3008(0)
+
+	# initialize pH sensor
+	salinityMeter = MCP3008(1)
+
+	phMeter = MCP3008(2)
+
 	
 
 def main():
 
 	setup()
-	thread.start_new_thread(readTemperatureSensor(), ())
-	thread.start_new_thread(readBrightnessSensor(), ())
-	thread.start_new_thread(readSalinitySensor(), ())
+	thread.start_new_thread(readTemperatureSensor, ())
+	thread.start_new_thread(readBrightnessSensor, ())
+	thread.start_new_thread(readSalinitySensor, ())
+	thread.start_new_thread(readPhSensor, ())
 	print('Program running... Press CTRL+C to exit')
 	
 	
