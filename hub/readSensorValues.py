@@ -3,16 +3,44 @@ import board
 from adafruit_bme280 import basic as adafruit_bme280
 from gpiozero import MCP3008
 from gpiozero import PWMLED
+import neopixel
+import digitalio
+
 import _thread as thread
 
-
 from databaseAccess import DatabaseAccess
-from constant import  TEMPERATURE, BRIGHTNESS, SALINITY, SOILPH
+from constant import TEMPERATURE, BRIGHTNESS, SALINITY, SOILPH, LOW_SALINITY_THRESHOLD, LOW_TEMPERATURE_THRESHOLD, HIGH_TEMPERATURE_THRESHOLD, LOW_LIGHT_THRESHOLD, LOW_PH_THRESHOLD, TEMPERATURE_TOO_HIGH, TEMPERATURE_TOO_LOW, LIGHT_TOO_LOW
 from util import sendData
-from moistureSensor import readMoistureSensor
+
+def sendNotification(message):
+	print('Notification sent: ', str(message))
+	pass
+
+def turnOnLed(colorState):
+	for i in range(LED_COUNT):
+		pixels[i] = colorState
+
+	pixels.show()
+
+def turnOffLed():
+	for i in range(LED_COUNT):
+		pixels[i] = (0, 0, 0)
+
+	pixels.show()
 
 def readTemperatureSensor():
 	temperature = bme280.temperature
+	
+	if temperature < LOW_TEMPERATURE_THRESHOLD:
+		sendNotification("Temperature level is too low")
+		turnOnLed(TEMPERATURE_TOO_LOW)
+	elif temperature > HIGH_TEMPERATURE_THRESHOLD:
+		sendNotification("Temperature level is too high")
+		turnOnLed(TEMPERATURE_TOO_HIGH)
+		turnOnLed(TEMPERATURE_TOO_HIGH)
+	else:
+		turnOffLed
+		
 	database.storeData(TEMPERATURE, temperature)
 	sendData(TEMPERATURE, temperature)
 	
@@ -20,6 +48,13 @@ def readBrightnessSensor():
 	while True:
 		try:
 			brightness = photocell.value
+
+			if brightness < LOW_LIGHT_THRESHOLD:
+				sendNotification("Brightness level is too low.")
+				turnOnLed(LIGHT_TOO_LOW)
+			else:
+				turnOffLed
+
 			database.storeData(BRIGHTNESS, brightness)
 			sendData(BRIGHTNESS, brightness)
 			print('Brightness is ', str(brightness))
@@ -31,7 +66,11 @@ def readBrightnessSensor():
 def readSalinitySensor():
 	while True:
 		try:
-			salinity = salinityMeter.value
+			salinity = salinityMeter.value * 5.0
+
+			if salinity < LOW_SALINITY_THRESHOLD:
+				sendNotification("Salinity level is too low.")
+
 			database.storeData(SALINITY, salinity)
 			sendData(SALINITY, salinity)
 			print('Salinity is ', str(salinity))
@@ -43,7 +82,12 @@ def readSalinitySensor():
 def readPhSensor():
 	while True:
 		try:
-			ph = phMeter.value * (5.0 / 1024.0 / 6) * 3.5
+			voltage = phMeter.value * 5.0
+			ph = 7.0 + (voltage - 2.5)
+
+			if ph < LOW_PH_THRESHOLD:
+				sendNotification("pH level is too low.")
+
 			database.storeData(SOILPH, ph)
 			sendData(SOILPH, ph)
 			print('Soil pH is ', str(ph))
@@ -70,7 +114,23 @@ def setup():
 
 	phMeter = MCP3008(2)
 
-	
+	initializeLed()
+
+
+def initializeLed():
+	global pixels, LED_COUNT
+
+	LED_COUNT = 8
+	LED_PIN = board.D10
+	ORDER = neopixel.GRB 
+
+	led_pin = digitalio.DigitalInOut(LED_PIN)
+	led_pin.switch_to_output()
+
+	pixels = neopixel.NeoPixel(LED_PIN, LED_COUNT, pixel_order=ORDER, auto_write=False)
+
+	pixels.brightness = 0.5
+
 
 def main():
 

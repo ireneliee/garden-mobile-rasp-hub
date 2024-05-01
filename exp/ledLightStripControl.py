@@ -10,7 +10,7 @@ ORDER = neopixel.GRB
 led_pin = digitalio.DigitalInOut(LED_PIN)
 led_pin.switch_to_output()
 
-pixels = neopixel.NeoPixel(board.D10, LED_COUNT, pixel_order=ORDER, auto_write=False)
+pixels = neopixel.NeoPixel(LED_PIN, LED_COUNT, pixel_order=ORDER, auto_write=False)
 
 pixels.brightness = 0.1
 
