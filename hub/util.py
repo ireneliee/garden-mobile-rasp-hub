@@ -37,3 +37,22 @@ def sendData(dataType, sensorValue):
 		print("Data sending to backend is successful!")
 	else:
 		print("POST request failed with status code: ", response.status_code)
+
+def sendPicture(picture_path):
+    url = API.format("submitPictureData")
+
+    try:
+        with open(picture_path, 'rb') as file:
+            files = {'file': file}
+            data = {
+                "identifier": getSerialNumber(),
+                "timestamp": str(datetime.now().time())
+            }
+            response = requests.post(API, files=files, data=data)
+
+            if response.status_code == 200:
+                print("Picture sending to backend is successful!")
+            else:
+                print("POST request failed with status code:", response.status_code)
+    except Exception as e:
+        print("An error occurred:", e)
