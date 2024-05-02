@@ -10,6 +10,9 @@ import busio
 import adafruit_blinka.board as board
 import _thread as thread
 import neopixel
+import board
+from picamera2 import Picamera2, Preview
+from util import sendPicture
 
 from databaseAccess import DatabaseAccess
 
@@ -175,52 +178,32 @@ def setup():
 	ideal_moisture_value = IDEAL_MOISTURE_VALUES
 
 def setupLed():
-	global LED_COUNT, LED_PIN, isOn
-	isOn = False
-
-	LED_COUNT = 30
-	LED_PIN = 18  # GPIO pin connected to the LEDs
-	GPIO.setmode(GPIO.BCM)
-	GPIO.setup(LED_PIN, GPIO.OUT)
-
-def send_bit(value):
-    GPIO.output(LED_PIN, value)
-    GPIO.output(LED_PIN, GPIO.HIGH)  # Pulse high to latch data
-    GPIO.output(LED_PIN, GPIO.LOW)
-
-def turn_on():
-	global isOn
-	isOn = True
-
-def turn_off():
-   global isOn
-   isOn = False
+	global pixels1, currentState
+	pixels1 = neopixel.NeoPixel(board.D18, 55, brightness=1)
+	currentState = False
 
 def maintainLed():
-	global isOn
+	global pixels1, currentState
 	while True:
-
 		try:
-			if isOn:
-				for _ in range(LED_COUNT):
-					for _ in range(24):  # Send 24 bits for each LED
-						send_bit(GPIO.HIGH)  # Signal for white color
-				# Send latch signal to ensure LEDs display the color
-				GPIO.output(LED_PIN, GPIO.HIGH)
-				GPIO.output(LED_PIN, GPIO.LOW)
+			if currentState:
+				pixels1.fill((0, 220, 0))
 			else:
-				for _ in range(LED_COUNT):
-					for _ in range(24):  # Send 24 bits for each LED
-						send_bit(GPIO.LOW)
-				# Send latch signal to ensure LEDs are turned off
-				GPIO.output(LED_PIN, GPIO.HIGH)
-				GPIO.output(LED_PIN, GPIO.LOW)
-		
+				pixels1.fill((0, 0, 0))
 
 		except Exception as e:
-			print("An error occurred while turning on LED: ", e)
+			print("An error occurred while maintaining LED: ", e)
 		finally:
-			time.sleep(1)
+			time.sleep(0.1)
+
+def turn_on():
+	global currentState
+	currentState = True
+
+def turn_off():
+	global currentState
+	currentState = False
+	
 def updateIdealValues():
 	global ideal_temperature_value, ideal_moisture_value
 	while True:
@@ -236,7 +219,22 @@ def updateIdealValues():
 			print("An error occurred while retrieving ideal value: ", e)
 		finally:
 			time.sleep(5)
-	
+
+def takePicture():
+	while True:
+		try:
+			picam2 = Picamera2()
+			camera_config = picam2.create_still_configuration()
+			picam2.configure(camera_config)
+			picam2.start()
+			time.sleep(2)
+			picam2.capture_file("/home/pi/Desktop/gardenPicture.jpg")
+			sendPicture("/home/pi/Desktop/gardenPicture.jpg")
+			print('Sent Picture')
+		except Exception as e:
+			print("An error occurred: ", e)
+		finally:
+			time.sleep(2)
 		
 def main():
 
@@ -248,7 +246,7 @@ def main():
 	thread.start_new_thread(readPhSensor, ())
 	thread.start_new_thread(readMoistureSensor,())
 	thread.start_new_thread(maintainLed,())
-	# thread.start_new_thread(takePicture, ())
+	thread.start_new_thread(takePicture, ())
 	thread.start_new_thread(updateIdealValues, ())
 	print('Program running... Press CTRL+C to exit')
 	
@@ -275,7 +273,7 @@ def main():
 	
 
 	print('Program exited...')
-	GPIO.cleanup()
+	pixels1.fill((0, 0, 0))
 	
 
 if __name__ == '__main__':
