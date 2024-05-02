@@ -3,10 +3,6 @@ import board
 from adafruit_bme280 import basic as adafruit_bme280
 from gpiozero import MCP3008
 from gpiozero import PWMLED
-import neopixel
-import digitalio
-import serial
-
 import _thread as thread
 
 from databaseAccess import DatabaseAccess
@@ -17,17 +13,6 @@ def sendNotification(message):
 	print('Notification sent: ', str(message))
 	pass
 
-def turnOnLed(colorState):
-	for i in range(LED_COUNT):
-		pixels[i] = colorState
-
-	pixels.show()
-
-def turnOffLed():
-	for i in range(LED_COUNT):
-		pixels[i] = (0, 0, 0)
-
-	pixels.show()
 
 def sendCommand(command):
         
@@ -175,22 +160,7 @@ def setup():
 
 	phMeter = MCP3008(0)
 
-	# initializeLed()
 
-
-def initializeLed():
-	global pixels, LED_COUNT
-
-	LED_COUNT = 8
-	LED_PIN = board.D10
-	ORDER = neopixel.GRB 
-
-	led_pin = digitalio.DigitalInOut(LED_PIN)
-	led_pin.switch_to_output()
-
-	pixels = neopixel.NeoPixel(LED_PIN, LED_COUNT, pixel_order=ORDER, auto_write=False)
-
-	pixels.brightness = 0.5
 
 
 def main():

@@ -1,21 +1,42 @@
-import board
-import neopixel
-import digitalio
+import RPi.GPIO as GPIO
+import time
 
-# Configuration
+# Set up GPIO
 LED_COUNT = 8
-LED_PIN = board.D10
-ORDER = neopixel.GRB 
+LED_PIN = 18  # GPIO pin connected to the LEDs
 
-led_pin = digitalio.DigitalInOut(LED_PIN)
-led_pin.switch_to_output()
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(LED_PIN, GPIO.OUT)
 
-pixels = neopixel.NeoPixel(LED_PIN, LED_COUNT, pixel_order=ORDER, auto_write=False)
+# Define colors
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
 
-pixels.brightness = 0.1
+# Function to send color data to LEDs
+def send_color(color):
+    # Send color data to each LED
+    for _ in range(LED_COUNT):
+        # Send data for each color channel (GRB order)
+        for value in color:
+            for _ in range(8):
+                # Send bit by bit, MSB first
+                GPIO.output(LED_PIN, GPIO.HIGH if (value & 0x80) else GPIO.LOW)
+                time.sleep(0.0000004)  # 400ns
+                GPIO.output(LED_PIN, GPIO.LOW)
+                value <<= 1
+                time.sleep(0.0000004)  # 400ns
 
-pixels[0] = (255, 0, 0)
-pixels[1] = (255, 0, 0)
+# Turn off all LEDs
+send_color((0, 0, 0))
 
+# Turn on each LED with a different color
+while True:
+    send_color(RED)
+    time.sleep(0.5)
+    send_color(GREEN)
+    time.sleep(0.5)
+    send_color(BLUE)
 
-pixels.show()
+# # Clean up GPIO
+# GPIO.cleanup()
