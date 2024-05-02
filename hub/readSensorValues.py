@@ -11,6 +11,7 @@ import _thread as thread
 from databaseAccess import DatabaseAccess
 from constant import TEMPERATURE, BRIGHTNESS, SALINITY, SOILPH, LOW_SALINITY_THRESHOLD, LOW_TEMPERATURE_THRESHOLD, HIGH_TEMPERATURE_THRESHOLD, LOW_LIGHT_THRESHOLD, LOW_PH_THRESHOLD, TEMPERATURE_TOO_HIGH, TEMPERATURE_TOO_LOW, LIGHT_TOO_LOW
 from util import sendData
+from moistureSerial import readMoistureSensor
 
 def sendNotification(message):
 	print('Notification sent: ', str(message))
@@ -27,6 +28,7 @@ def turnOffLed():
 		pixels[i] = (0, 0, 0)
 
 	pixels.show()
+    
 
 def readTemperatureSensor():
 	temperature = bme280.temperature
@@ -139,6 +141,7 @@ def main():
 	thread.start_new_thread(readBrightnessSensor, ())
 	thread.start_new_thread(readSalinitySensor, ())
 	thread.start_new_thread(readPhSensor, ())
+	thread.start_new_thread(readMoistureSensor,())
 	print('Program running... Press CTRL+C to exit')
 	
 	

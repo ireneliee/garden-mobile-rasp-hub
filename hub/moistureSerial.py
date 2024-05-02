@@ -6,7 +6,7 @@ from util import sendData
 
 from databaseAccess import DatabaseAccess
 
-from constant import  MOISTURE
+from constant import MOISTURE
 
 import _thread as thread
 
@@ -22,6 +22,11 @@ def waitResponse():
     response = response.decode('utf-8').strip()
     
     return response
+
+def getIdeal():
+    # get ideal from server here
+    ideal = 500
+    return ideal
     
 def readMoistureSensor():
 
@@ -35,7 +40,7 @@ def readMoistureSensor():
                 
         time.sleep(3)                    
             
-        commandToTx = 'ideal=400'                
+        commandToTx = 'ideal=' + getIdeal()                
         sendCommand('cmd:' + commandToTx)                    
                         
         if commandToTx.startswith('ideal='):
