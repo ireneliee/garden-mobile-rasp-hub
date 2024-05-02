@@ -5,11 +5,12 @@ from gpiozero import MCP3008
 from gpiozero import PWMLED
 import neopixel
 import digitalio
+import serial
 
 import _thread as thread
 
 from databaseAccess import DatabaseAccess
-from constant import TEMPERATURE, BRIGHTNESS, SALINITY, SOILPH, LOW_SALINITY_THRESHOLD, LOW_TEMPERATURE_THRESHOLD, HIGH_TEMPERATURE_THRESHOLD, LOW_LIGHT_THRESHOLD, LOW_PH_THRESHOLD, TEMPERATURE_TOO_HIGH, TEMPERATURE_TOO_LOW, LIGHT_TOO_LOW
+from constant import TEMPERATURE, BRIGHTNESS, SALINITY, SOILPH, LOW_SALINITY_THRESHOLD, LOW_TEMPERATURE_THRESHOLD, HIGH_TEMPERATURE_THRESHOLD, LOW_LIGHT_THRESHOLD, LOW_PH_THRESHOLD, TEMPERATURE_TOO_HIGH, TEMPERATURE_TOO_LOW, LIGHT_TOO_LOW, MOISTURE
 from util import sendData
 
 def sendNotification(message):
@@ -27,6 +28,58 @@ def turnOffLed():
 		pixels[i] = (0, 0, 0)
 
 	pixels.show()
+
+def sendCommand(command):
+        
+    command = command + '\n'
+    ser.write(str.encode(command))
+    
+def waitResponse():
+    
+    response = ser.readline()
+    response = response.decode('utf-8').strip()
+    
+    return response
+
+def getIdeal():
+    # get ideal from server here
+    ideal = 500
+    return ideal
+    
+def readMoistureSensor():
+
+    database = DatabaseAccess()
+    
+    global ser
+    ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=1)
+    print('rhub: Listening on /dev/ttyACM0... Press CTRL+C to exit')
+    
+    while True:
+                
+        time.sleep(3)                    
+            
+        commandToTx = 'ideal=' + str(getIdeal())           
+        sendCommand('cmd:' + commandToTx)                    
+                        
+        if commandToTx.startswith('ideal='):
+                    
+            strSensorValues = ''
+                            
+            while strSensorValues == None or len(strSensorValues) <= 0:
+                        
+                strSensorValues = waitResponse()
+                time.sleep(1)
+
+                listSensorValues = strSensorValues.split(',')
+
+                for sensorValue in listSensorValues:
+                    value = sensorValue
+                    print('rhub: {}'.format(sensorValue))
+                        
+                if value != "":
+                    moistureData = int(value)
+                    database.storeData(MOISTURE, moistureData)
+                    sendData(MOISTURE, moistureData)
 
 def readTemperatureSensor():
 	while True:
@@ -147,6 +200,7 @@ def main():
 	thread.start_new_thread(readBrightnessSensor, ())
 	thread.start_new_thread(readSalinitySensor, ())
 	thread.start_new_thread(readPhSensor, ())
+	thread.start_new_thread(readMoistureSensor,())
 	print('Program running... Press CTRL+C to exit')
 	
 	
