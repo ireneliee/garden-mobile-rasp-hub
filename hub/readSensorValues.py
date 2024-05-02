@@ -29,47 +29,55 @@ def turnOffLed():
 	pixels.show()
 
 def readTemperatureSensor():
-	temperature = bme280.temperature
+	while True:
+		try:
+			temperature = bme280.temperature
+			print('Temperature is ', str(temperature))
+			
+			# if temperature < LOW_TEMPERATURE_THRESHOLD:
+			# 	sendNotification("Temperature level is too low")
+			# 	turnOnLed(TEMPERATURE_TOO_LOW)
+			# elif temperature > HIGH_TEMPERATURE_THRESHOLD:
+			# 	sendNotification("Temperature level is too high")
+			# 	turnOnLed(TEMPERATURE_TOO_HIGH)
+			# 	turnOnLed(TEMPERATURE_TOO_HIGH)
+			# else:
+			# 	turnOffLed
+				
+			database.storeData(TEMPERATURE, temperature)
+			sendData(TEMPERATURE, temperature)
+		except Exception as e:
+			print("An error occurred: ", e)
+		finally:
+			time.sleep(2)
 	
-	if temperature < LOW_TEMPERATURE_THRESHOLD:
-		sendNotification("Temperature level is too low")
-		turnOnLed(TEMPERATURE_TOO_LOW)
-	elif temperature > HIGH_TEMPERATURE_THRESHOLD:
-		sendNotification("Temperature level is too high")
-		turnOnLed(TEMPERATURE_TOO_HIGH)
-		turnOnLed(TEMPERATURE_TOO_HIGH)
-	else:
-		turnOffLed
-		
-	database.storeData(TEMPERATURE, temperature)
-	sendData(TEMPERATURE, temperature)
 	
 def readBrightnessSensor():
 	while True:
 		try:
-			brightness = photocell.value
+			brightness = photocell.value * 5.0
 
-			if brightness < LOW_LIGHT_THRESHOLD:
-				sendNotification("Brightness level is too low.")
-				turnOnLed(LIGHT_TOO_LOW)
-			else:
-				turnOffLed
+			# if brightness < LOW_LIGHT_THRESHOLD:
+			# 	sendNotification("Brightness level is too low.")
+			# 	turnOnLed(LIGHT_TOO_LOW)
+			# else:
+			# 	turnOffLed
 
 			database.storeData(BRIGHTNESS, brightness)
-			sendData(BRIGHTNESS, brightness)
+			# sendData(BRIGHTNESS, brightness)
 			print('Brightness is ', str(brightness))
 		except Exception as e:
 			print("An error occurred: ", e)
 		finally:
-			time.sleep(10)
+			time.sleep(2)
 
 def readSalinitySensor():
 	while True:
 		try:
 			salinity = salinityMeter.value * 5.0
 
-			if salinity < LOW_SALINITY_THRESHOLD:
-				sendNotification("Salinity level is too low.")
+			# if salinity < LOW_SALINITY_THRESHOLD:
+			# 	sendNotification("Salinity level is too low.")
 
 			database.storeData(SALINITY, salinity)
 			sendData(SALINITY, salinity)
@@ -77,7 +85,7 @@ def readSalinitySensor():
 		except Exception as e:
 			print("An error occurred: ", e)
 		finally:
-			time.sleep(5)
+			time.sleep(2)
 
 def readPhSensor():
 	while True:
@@ -85,8 +93,8 @@ def readPhSensor():
 			voltage = phMeter.value * 5.0
 			ph = 7.0 + (voltage - 2.5)
 
-			if ph < LOW_PH_THRESHOLD:
-				sendNotification("pH level is too low.")
+			# if ph < LOW_PH_THRESHOLD:
+			# 	sendNotification("pH level is too low.")
 
 			database.storeData(SOILPH, ph)
 			sendData(SOILPH, ph)
@@ -107,14 +115,14 @@ def setup():
 	bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
 	
 	# initialize light sensor
-	photocell = MCP3008(0)
+	photocell = MCP3008(1)
 
 	# initialize pH sensor
-	salinityMeter = MCP3008(1)
+	salinityMeter = MCP3008(2)
 
-	phMeter = MCP3008(2)
+	phMeter = MCP3008(0)
 
-	initializeLed()
+	# initializeLed()
 
 
 def initializeLed():
@@ -168,3 +176,4 @@ def main():
 if __name__ == '__main__':
     
     main()
+
