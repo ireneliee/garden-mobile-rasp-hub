@@ -38,6 +38,18 @@ def sendData(dataType, sensorValue):
 	else:
 		print("POST request failed with status code: ", response.status_code)
 
+def retrieveIdealValues():
+    url = API.format("getGardenTypeBySerialId") + "?serialId=" + getSerialNumber()
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        return data
+
+    else:
+        print('Error:', response.status_code)
+        return None
+
 def sendPicture(picture_path):
     url = API.format("submitPictureData")
 
@@ -48,7 +60,7 @@ def sendPicture(picture_path):
                 "identifier": getSerialNumber(),
                 "timestamp": str(datetime.now().time())
             }
-            response = requests.post(API, files=files, data=data)
+            response = requests.post(url, files=files, data=data)
 
             if response.status_code == 200:
                 print("Picture sending to backend is successful!")
