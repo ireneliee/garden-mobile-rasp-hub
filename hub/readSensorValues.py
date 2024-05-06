@@ -1,4 +1,3 @@
-
 import time
 from adafruit_bme280 import basic as adafruit_bme280
 # from picamera2 import Picamera2, Preview
@@ -16,7 +15,7 @@ from util import sendPicture
 
 from databaseAccess import DatabaseAccess
 
-from constant import TEMPERATURE, BRIGHTNESS, SALINITY, SOILPH, MOISTURE, LOW_TEMPERATURE_THRESHOLD, LOW_LIGHT_THRESHOLD, LOW_PH_THRESHOLD, IDEAL_TEMPERATURE_VALUES, IDEAL_SALINITY_VALUES, IDEAL_MOISTURE_VALUES, IDEAL_PH_VALUES, IDEAL_BRIGHTNESS_VALUES
+from constant import TEMPERATURE, BRIGHTNESS, SALINITY, SOILPH, MOISTURE, LOW_TEMPERATURE_THRESHOLD, LOW_LIGHT_THRESHOLD, LOW_PH_THRESHOLD, IDEAL_TEMPERATURE_VALUES, IDEAL_SALINITY_VALUES, IDEAL_MOISTURE_VALUES, IDEAL_PH_VALUES, IDEAL_BRIGHTNESS_VALUES, LOW_MOISTURE_THRESHOLD
 from util import sendData, retrieveIdealValues, sendPicture
 from moistureSerial import readMoistureSensor
 
@@ -31,11 +30,6 @@ def waitResponse():
     response = response.decode('utf-8').strip()
     
     return response
-
-def getIdeal():
-    # get ideal from server here
-    ideal = 500
-    return ideal
     
 def readMoistureSensor():
 
@@ -48,8 +42,8 @@ def readMoistureSensor():
     while True:
                 
         time.sleep(3)                    
-            
-        commandToTx = 'ideal=' + str(getIdeal())           
+        idealValue = ideal_moisture_value - LOW_MOISTURE_THRESHOLD
+        commandToTx = 'ideal=' + str(idealValue)           
         sendCommand('cmd:' + commandToTx)                    
                         
         if commandToTx.startswith('ideal='):
@@ -65,7 +59,7 @@ def readMoistureSensor():
 
                 for sensorValue in listSensorValues:
                     value = sensorValue
-                    print('rhub: {}'.format(sensorValue))
+                    print('moisture level: {}'.format(sensorValue))
                         
                 if value != "":
                     moistureData = int(value)
@@ -137,21 +131,21 @@ def readPhSensor():
 		finally:
 			time.sleep(5)
    
-# def takePicture():
-# 	while True:
-# 		try:
-# 			picam2 = Picamera2()
-# 			camera_config = picam2.create_still_configuration()
-# 			picam2.configure(camera_config)
-# 			picam2.start()
-# 			time.sleep(2)
-# 			picam2.capture_file("/home/pi/Desktop/gardenPicture.jpg")
-# 			sendPicture("/home/pi/Desktop/gardenPicture.jpg")
-# 			print('Sent Picture')
-# 		except Exception as e:
-# 			print("An error occurred: ", e)
-# 		finally:
-# 			time.sleep(2)
+def takePicture():
+	while True:
+		try:
+			picam2 = Picamera2()
+			camera_config = picam2.create_still_configuration()
+			picam2.configure(camera_config)
+			picam2.start()
+			time.sleep(2)
+			picam2.capture_file("/home/pi/Desktop/gardenPicture.jpg")
+			sendPicture("/home/pi/Desktop/gardenPicture.jpg")
+			print('Sent Picture')
+		except Exception as e:
+			print("An error occurred: ", e)
+		finally:
+			time.sleep(2)
 def setup():
 	global database, bme280, photocell, salinityMeter, phMeter, ideal_temperature_value, ideal_brightness_value, ideal_moisture_value
 	# initialization database
@@ -220,21 +214,7 @@ def updateIdealValues():
 		finally:
 			time.sleep(5)
 
-def takePicture():
-	while True:
-		try:
-			picam2 = Picamera2()
-			camera_config = picam2.create_still_configuration()
-			picam2.configure(camera_config)
-			picam2.start()
-			time.sleep(2)
-			picam2.capture_file("/home/pi/Desktop/gardenPicture.jpg")
-			sendPicture("/home/pi/Desktop/gardenPicture.jpg")
-			print('Sent Picture')
-		except Exception as e:
-			print("An error occurred: ", e)
-		finally:
-			time.sleep(2)
+
 		
 def main():
 
