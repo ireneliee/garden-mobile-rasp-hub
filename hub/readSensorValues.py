@@ -41,7 +41,6 @@ def readMoistureSensor():
     
     while True:
                 
-        time.sleep(3)                    
         idealValue = ideal_moisture_value - LOW_MOISTURE_THRESHOLD
         commandToTx = 'ideal=' + str(idealValue)           
         sendCommand('cmd:' + commandToTx)                    
@@ -72,17 +71,15 @@ def readTemperatureSensor():
 			temperature = bme280.temperature
 			print('Temperature is ', str(temperature))
 			if temperature < ideal_temperature_value - LOW_TEMPERATURE_THRESHOLD:
-				
 				print('Temperature level is too low.')
-				turn_on()
-			else:
-				turn_off()
+
 			database.storeData(TEMPERATURE, temperature)
 			sendData(TEMPERATURE, temperature)
 		except Exception as e:
 			print("An error occurred: ", e)
 		finally:
 			time.sleep(5)
+
 def readBrightnessSensor():
 	while True:
 		try:
@@ -90,11 +87,13 @@ def readBrightnessSensor():
 
 			if brightness < ideal_brightness_value - LOW_LIGHT_THRESHOLD:
 				print('Brightness level is too low.')
+				print('Brightness is ', str(brightness))
+				print('Threshold is ', str(ideal_brightness_value - LOW_LIGHT_THRESHOLD))
 				print('Actuation: turn on')
-				turn_on()
+				pixels1.fill((0, 220, 0))
 			else:
 				print('Actuation: turn off')
-				turn_off()
+				pixels1.fill((0, 0, 0))
 
 			database.storeData(BRIGHTNESS, brightness)
 			sendData(BRIGHTNESS, brightness)
@@ -102,8 +101,8 @@ def readBrightnessSensor():
 		except Exception as e:
 			print("An error occurred: ", e)
 		finally:
-			time.sleep(5)
-
+			time.sleep(10)
+			
 def readSalinitySensor():
 	while True:
 		try:
@@ -145,7 +144,8 @@ def takePicture():
 		except Exception as e:
 			print("An error occurred: ", e)
 		finally:
-			time.sleep(2)
+			picam2.stop()
+			time.sleep(60) 
 def setup():
 	global database, bme280, photocell, salinityMeter, phMeter, ideal_temperature_value, ideal_brightness_value, ideal_moisture_value
 	# initialization database
@@ -175,29 +175,8 @@ def setupLed():
 	global pixels1, currentState
 	pixels1 = neopixel.NeoPixel(board.D18, 55, brightness=1)
 	currentState = False
+	pixels1.fill((0, 0, 0))
 
-def maintainLed():
-	global pixels1, currentState
-	while True:
-		try:
-			if currentState:
-				pixels1.fill((0, 220, 0))
-			else:
-				pixels1.fill((0, 0, 0))
-
-		except Exception as e:
-			print("An error occurred while maintaining LED: ", e)
-		finally:
-			time.sleep(0.1)
-
-def turn_on():
-	global currentState
-	currentState = True
-
-def turn_off():
-	global currentState
-	currentState = False
-	
 def updateIdealValues():
 	global ideal_temperature_value, ideal_moisture_value
 	while True:
@@ -207,7 +186,7 @@ def updateIdealValues():
 			if ideal_values:
 				ideal_temperature_value = ideal_values["ideal_temp_level"]
 				ideal_moisture_value = ideal_values["ideal_moisture_level"]
-		
+				
 
 		except Exception as e:
 			print("An error occurred while retrieving ideal value: ", e)
@@ -225,7 +204,6 @@ def main():
 	thread.start_new_thread(readBrightnessSensor, ())
 	thread.start_new_thread(readPhSensor, ())
 	thread.start_new_thread(readMoistureSensor,())
-	thread.start_new_thread(maintainLed,())
 	thread.start_new_thread(takePicture, ())
 	thread.start_new_thread(updateIdealValues, ())
 	print('Program running... Press CTRL+C to exit')
