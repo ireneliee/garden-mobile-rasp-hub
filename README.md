@@ -10,14 +10,16 @@ This repository contains the code for the Raspberry PI attached to each Garden B
 
 In order for you to be able to follow along the instruction below, you should have already set up the [Garden Buddy backend server](https://github.com/ireneliee/garden-buddy-backend) and [Garden Buddy mobile application](https://github.com/ireneliee/garden-buddy-mobile)
 
+Additionally, you also need to create your Garden Buddy setup:
+
+![garden-buddy-setup](https://github.com/ireneliee/garden-mobile-rasp-hub/blob/main/garden_buddy_setup.jpg?raw=true)
+
 1. Clone this repository to your local computer
 2. Create a new virtual environment for this repository and install all the required packages using
 ```
 pip install -r requirements.txt
 ```
-3. Create the Garden Buddy setup
-
-4. Run the script by using 
+3. Run the script by using 
 ```
 sudo python3 readSensorValue.py
 ```
