@@ -15,7 +15,9 @@ In order for you to be able to follow along the instruction below, you should ha
 ```
 pip install -r requirements.txt
 ```
-3. Run the script by using 
+3. Create the Garden Buddy setup
+
+4. Run the script by using 
 ```
 sudo python3 readSensorValue.py
 ```
